@@ -99,6 +99,16 @@
     <!-- Mesej selepas berjaya -->
     <div class="success-message" id="successMsg">Permohonan berjaya dihantar!</div>
   </form>
+
+  <!-- Seksyen untuk preview debugging -->
+    <div id="debugPreview" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px dashed #ccc; border-radius: 6px;">
+      <h3>🔍 Debug Preview</h3>
+      <p><strong>Nama:</strong> <span id="previewNama">-</span></p>
+      <p><strong>Emel:</strong> <span id="previewEmel">-</span></p>
+      <p><strong>Telefon:</strong> <span id="previewTelefon">-</span></p>
+      <p><strong>Sebab:</strong> <span id="previewSebab">-</span></p>
+    </div>
+
 </div>
 
 <!-- Firebase SDK dalam bentuk modul ES6 -->
@@ -168,6 +178,26 @@
       }
     });
   });
+
+  // Update preview secara langsung semasa pengguna menaip
+const previewNama = document.getElementById("previewNama");
+const previewEmel = document.getElementById("previewEmel");
+const previewTelefon = document.getElementById("previewTelefon");
+const previewSebab = document.getElementById("previewSebab");
+
+// Fungsi bantu kemaskini preview
+function updatePreview() {
+  previewNama.textContent = document.getElementById("nama").value;
+  previewEmel.textContent = document.getElementById("emel").value;
+  previewTelefon.textContent = document.getElementById("telefon").value;
+  previewSebab.textContent = document.getElementById("sebab").value;
+}
+
+// Set event untuk update setiap kali input berubah
+["nama", "emel", "telefon", "sebab"].forEach(id => {
+  document.getElementById(id).addEventListener("input", updatePreview);
+});
+
 </script>
 
 </body>
