@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Borang Permohonan Cuti Staf</title>
+  <title>Borang Permohonan Cuti</title>
 
-  <!-- Gaya CSS asas untuk borang -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,7 +12,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      height: auto;
+      padding: 40px 0;
     }
 
     .form-container {
@@ -22,7 +22,7 @@
       border-radius: 12px;
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 500px;
+      max-width: 550px;
     }
 
     h2 {
@@ -69,59 +69,76 @@
       border-radius: 5px;
       text-align: center;
     }
+
+    .toggle-debug {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #debugWrapper {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border: 1px dashed #ccc;
+      border-radius: 6px;
+    }
+
+    #debugWrapper h3 {
+      margin-top: 0;
+    }
   </style>
 </head>
 <body>
 
-<!-- Kontena borang -->
 <div class="form-container">
-  <h2>Borang Permohonan Cuti Pekerja</h2>
+  <h2>Borang Permohonan Cuti</h2>
+
+  <!-- BORANG CUTI -->
   <form id="cutiForm">
-    <!-- Input nama -->
     <label for="nama">Nama Penuh</label>
     <input type="text" id="nama" name="nama" required>
 
-    <!-- Input emel -->
     <label for="emel">Emel</label>
     <input type="email" id="emel" name="emel" required>
 
-    <!-- Input telefon (format ringkas 01X-XXXXXXX) -->
     <label for="telefon">No. Telefon</label>
     <input type="tel" id="telefon" name="telefon" required pattern="01[0-9]{1}-[0-9]{7,8}">
 
-    <!-- Input sebab cuti -->
     <label for="sebab">Sebab Cuti</label>
     <textarea id="sebab" name="sebab" rows="4" required></textarea>
 
-    <!-- Butang hantar -->
     <button type="submit">Hantar Permohonan</button>
 
-    <!-- Mesej selepas berjaya -->
     <div class="success-message" id="successMsg">Permohonan berjaya dihantar!</div>
   </form>
 
-  <!-- Seksyen untuk preview debugging -->
-    <div id="debugPreview" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px dashed #ccc; border-radius: 6px;">
-      <h3>🔍 Debug Preview</h3>
-      <p><strong>Nama:</strong> <span id="previewNama">-</span></p>
-      <p><strong>Emel:</strong> <span id="previewEmel">-</span></p>
-      <p><strong>Telefon:</strong> <span id="previewTelefon">-</span></p>
-      <p><strong>Sebab:</strong> <span id="previewSebab">-</span></p>
-    </div>
+  <!-- TOGGLE DEBUG -->
+  <div class="toggle-debug">
+    <input type="checkbox" id="toggleDebug">
+    <label for="toggleDebug">Tunjuk Debug Preview</label>
+  </div>
 
-    <div id="debugWrapper" style="display: none;">...</div>
-
-
+  <!-- DEBUG PREVIEW -->
+  <div id="debugWrapper">
+    <h3>🔍 Debug Preview</h3>
+    <p><strong>Nama:</strong> <span id="previewNama">-</span></p>
+    <p><strong>Emel:</strong> <span id="previewEmel">-</span></p>
+    <p><strong>Telefon:</strong> <span id="previewTelefon">-</span></p>
+    <p><strong>Sebab:</strong> <span id="previewSebab">-</span></p>
+  </div>
 </div>
 
-<!-- Firebase SDK dalam bentuk modul ES6 -->
+<!-- FIREBASE & LOGIK JS -->
 <script type="module">
-  // Import fungsi dari Firebase SDK
+  // Import Firebase SDK
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
   import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // Konfigurasi projek Firebase anda
+  // Konfigurasi Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDE-oEFGHFee-AK_bRBok2K4xe55PzLwLc",
     authDomain: "cutiapplication.firebaseapp.com",
@@ -134,31 +151,51 @@
 
   // Inisialisasi Firebase
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app); // Optional: untuk analitik
-  const db = getFirestore(app); // Pangkalan data Firestore
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
 
-  // Tunggu sehingga dokumen dimuat sepenuhnya
   document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("cutiForm");
+    const toggleDebug = document.getElementById("toggleDebug");
+    const debugWrapper = document.getElementById("debugWrapper");
 
-    // Apabila borang dihantar
+    const previewNama = document.getElementById("previewNama");
+    const previewEmel = document.getElementById("previewEmel");
+    const previewTelefon = document.getElementById("previewTelefon");
+    const previewSebab = document.getElementById("previewSebab");
+
+    // Toggle Debug Preview
+    toggleDebug.addEventListener("change", function () {
+      debugWrapper.style.display = this.checked ? "block" : "none";
+    });
+
+    // Kemaskini nilai preview semasa pengguna menaip
+    function updatePreview() {
+      previewNama.textContent = document.getElementById("nama").value;
+      previewEmel.textContent = document.getElementById("emel").value;
+      previewTelefon.textContent = document.getElementById("telefon").value;
+      previewSebab.textContent = document.getElementById("sebab").value;
+    }
+
+    ["nama", "emel", "telefon", "sebab"].forEach(id => {
+      document.getElementById(id).addEventListener("input", updatePreview);
+    });
+
+    // Proses submit borang
     form.addEventListener("submit", async (e) => {
-      e.preventDefault(); // Halang submit default
+      e.preventDefault();
 
-      // Ambil data dari input
       const nama = document.getElementById("nama").value.trim();
       const emel = document.getElementById("emel").value.trim();
       const telefon = document.getElementById("telefon").value.trim();
       const sebab = document.getElementById("sebab").value.trim();
 
-      // Validasi asas
       if (!nama || !emel || !telefon || !sebab) {
         alert("Sila isi semua ruangan.");
         return;
       }
 
       try {
-        // Simpan ke Firestore (koleksi: permohonan_cuti)
         await addDoc(collection(db, "permohonan_cuti"), {
           nama,
           emel,
@@ -167,11 +204,10 @@
           tarikhHantar: new Date()
         });
 
-        // Reset borang & tunjuk mesej
         form.reset();
         document.getElementById("successMsg").style.display = "block";
+        updatePreview(); // reset preview juga
 
-        // Sembunyi mesej selepas 4 saat
         setTimeout(() => {
           document.getElementById("successMsg").style.display = "none";
         }, 4000);
@@ -181,29 +217,7 @@
       }
     });
   });
-
-  // Update preview secara langsung semasa pengguna menaip
-const previewNama = document.getElementById("previewNama");
-const previewEmel = document.getElementById("previewEmel");
-const previewTelefon = document.getElementById("previewTelefon");
-const previewSebab = document.getElementById("previewSebab");
-
-// Fungsi bantu kemaskini preview
-function updatePreview() {
-  previewNama.textContent = document.getElementById("nama").value;
-  previewEmel.textContent = document.getElementById("emel").value;
-  previewTelefon.textContent = document.getElementById("telefon").value;
-  previewSebab.textContent = document.getElementById("sebab").value;
-}
-
-// Set event untuk update setiap kali input berubah
-["nama", "emel", "telefon", "sebab"].forEach(id => {
-  document.getElementById(id).addEventListener("input", updatePreview);
-});
-
 </script>
 
 </body>
 </html>
-
-
