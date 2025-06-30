@@ -1,8 +1,176 @@
 <!DOCTYPE html>
-<html>
-<head><title>Borang Cuti Rasmi</title></head>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Borang Permohonan Cuti Staf</title>
+
+  <!-- Gaya CSS asas untuk borang -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f1f1f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .success-message {
+      display: none;
+      padding: 10px;
+      margin-top: 15px;
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      border-radius: 5px;
+      text-align: center;
+    }
+  </style>
+</head>
 <body>
-  <h1>Borang Permohonan Cuti Rasmi</h1>
+
+<!-- Kontena borang -->
+<div class="form-container">
+  <h2>Borang Permohonan Cuti Pekerja</h2>
+  <form id="cutiForm">
+    <!-- Input nama -->
+    <label for="nama">Nama Penuh</label>
+    <input type="text" id="nama" name="nama" required>
+
+    <!-- Input emel -->
+    <label for="emel">Emel</label>
+    <input type="email" id="emel" name="emel" required>
+
+    <!-- Input telefon (format ringkas 01X-XXXXXXX) -->
+    <label for="telefon">No. Telefon</label>
+    <input type="tel" id="telefon" name="telefon" required pattern="01[0-9]{1}-[0-9]{7,8}">
+
+    <!-- Input sebab cuti -->
+    <label for="sebab">Sebab Cuti</label>
+    <textarea id="sebab" name="sebab" rows="4" required></textarea>
+
+    <!-- Butang hantar -->
+    <button type="submit">Hantar Permohonan</button>
+
+    <!-- Mesej selepas berjaya -->
+    <div class="success-message" id="successMsg">Permohonan berjaya dihantar!</div>
+  </form>
+</div>
+
+<!-- Firebase SDK dalam bentuk modul ES6 -->
+<script type="module">
+  // Import fungsi dari Firebase SDK
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // Konfigurasi projek Firebase anda
+  const firebaseConfig = {
+    apiKey: "AIzaSyDE-oEFGHFee-AK_bRBok2K4xe55PzLwLc",
+    authDomain: "cutiapplication.firebaseapp.com",
+    projectId: "cutiapplication",
+    storageBucket: "cutiapplication.firebasestorage.app",
+    messagingSenderId: "285541579958",
+    appId: "1:285541579958:web:1091ba45d4940189f7fa17",
+    measurementId: "G-B8H0340ZMB"
+  };
+
+  // Inisialisasi Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app); // Optional: untuk analitik
+  const db = getFirestore(app); // Pangkalan data Firestore
+
+  // Tunggu sehingga dokumen dimuat sepenuhnya
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("cutiForm");
+
+    // Apabila borang dihantar
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault(); // Halang submit default
+
+      // Ambil data dari input
+      const nama = document.getElementById("nama").value.trim();
+      const emel = document.getElementById("emel").value.trim();
+      const telefon = document.getElementById("telefon").value.trim();
+      const sebab = document.getElementById("sebab").value.trim();
+
+      // Validasi asas
+      if (!nama || !emel || !telefon || !sebab) {
+        alert("Sila isi semua ruangan.");
+        return;
+      }
+
+      try {
+        // Simpan ke Firestore (koleksi: permohonan_cuti)
+        await addDoc(collection(db, "permohonan_cuti"), {
+          nama,
+          emel,
+          telefon,
+          sebab,
+          tarikhHantar: new Date()
+        });
+
+        // Reset borang & tunjuk mesej
+        form.reset();
+        document.getElementById("successMsg").style.display = "block";
+
+        // Sembunyi mesej selepas 4 saat
+        setTimeout(() => {
+          document.getElementById("successMsg").style.display = "none";
+        }, 4000);
+
+      } catch (error) {
+        alert("Ralat semasa menghantar data: " + error.message);
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
+
 
